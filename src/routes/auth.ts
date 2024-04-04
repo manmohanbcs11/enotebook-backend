@@ -1,22 +1,28 @@
 import express, { Request, Response, Router } from 'express';
 import { AuthController } from '../controller/authController';
 import { processRequest } from '../common/utils';
+import { authorizer } from '../middleware/authorizer';
 
 const router: Router = express.Router();
 const authController = new AuthController();
 
-// sign up a user
+// signup a user
 router.post('/signup', async (req: Request, res: Response) => {
   await processRequest(authController.signup, req, res);
 });
 
+// login a user
+router.post('/login', async (req: Request, res: Response) => {
+  await processRequest(authController.login, req, res);
+});
+
 // get user information by emailId
-router.get('/getuser/:emailid', async (req: Request, res: Response) => {
+router.get('/getuser/:emailid', authorizer, async (req: Request, res: Response) => {
   await processRequest(authController.getuser, req, res);
 });
 
 // update user information - not working
-router.put('/updateuser', async (req: Request, res: Response) => {
+router.put('/updateuser', authorizer, async (req: Request, res: Response) => {
   await processRequest(authController.updateuser, req, res);
 });
 
