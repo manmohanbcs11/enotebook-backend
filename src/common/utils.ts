@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { ApiResponse } from './apiResponse';
+import { ApiError, ApiResponse } from './apiResponse';
 import { Database } from './database';
+import { httpStatusCode } from './httpStatusCodes';
 
 export class Util {
   public static isEmpty(data: any): boolean {
@@ -15,15 +16,19 @@ export class Util {
     if (Object.keys(body).length > 0) {
       for (const key in body) {
         if (Util.isEmpty(body[key])) {
-          throw new Error('All fields are required.');
+          throw new ApiError(httpStatusCode.badRequest, 'All fields are required.');
         } else if (key === 'email') {
           if (!body[key].match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)) {
-            throw new Error('Invalid email address.');
+            throw new ApiError(httpStatusCode.badRequest, 'Invalid email address.');
+          }
+        } else if (key === 'password') {
+          if (body[key].length < 6) {
+            throw new ApiError(httpStatusCode.badRequest, 'Password must be at least 6 characters long.');
           }
         }
       }
     } else {
-      throw new Error('Invalid request body.');
+      throw new ApiError(httpStatusCode.badRequest, 'Invalid request body.');
     }
   }
 }
@@ -31,5 +36,5 @@ export class Util {
 export async function processRequest(callback: Function, req: Request, res: Response) {
   await new Database().connectToMongo();
   const response: ApiResponse = await callback(req);
-  res.send(response);
+  res.status(response.statusCode).send(response);
 }

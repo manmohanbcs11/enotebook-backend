@@ -1,6 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import { AuthController } from '../controller/authController';
-import { processRequest } from '../utils';
+import { processRequest } from '../common/utils';
 
 const router: Router = express.Router();
 const authController = new AuthController();

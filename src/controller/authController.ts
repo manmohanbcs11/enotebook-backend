@@ -1,6 +1,7 @@
-import { ApiResponse } from "../apiResponse";
+import { ApiResponse } from "../common/apiResponse";
 import UserModel from "../models/UserModel";
-import { Util } from "../utils";
+import { Util } from "../common/utils";
+import { httpStatusCode } from "../common/httpStatusCodes";
 
 export class AuthController {
   public async signup(req: any) {
@@ -9,9 +10,9 @@ export class AuthController {
       Util.validateBody(req.body);
       const user = new UserModel(req.body);
       await user.save();
-      response = new ApiResponse(200, 'User signed up successfully');
+      response = new ApiResponse(httpStatusCode.success, 'User signed up successfully');
     } catch (err) {
-      response = new ApiResponse(err.statusCode, err.message);
+      response = new ApiResponse(err?.statusCode? err.statusCode : httpStatusCode.internalServerError, err.message);
     }
     return response;
   }
@@ -23,12 +24,12 @@ export class AuthController {
       console.log('Getting user details for emailId:', emailId);
       const result = await UserModel.find({ email: emailId }).exec();
       if (result.length === 0) {
-        response = new ApiResponse(404, `User with emailId ${emailId} not found.`);
+        response = new ApiResponse(httpStatusCode.notFound, `User with emailId ${emailId} not found.`);
       } else {
-        response = new ApiResponse(200, `User with emailId ${emailId} found successfully.`, result);
+        response = new ApiResponse(httpStatusCode.success, `User with emailId ${emailId} found successfully.`, result);
       }
     } catch (err) {
-      response = new ApiResponse(err.statusCode, err.message);
+      response = new ApiResponse(err?.statusCode? err.statusCode : httpStatusCode.internalServerError, err.message);
     }
     return response;
   }
@@ -38,12 +39,12 @@ export class AuthController {
     try {
       const result = await UserModel.findOneAndUpdate(req.body);
       if (result) {
-        response = new ApiResponse(200, `User updated successfully.`, result);
+        response = new ApiResponse(httpStatusCode.success, `User updated successfully.`, result);
       } else {
-        response = new ApiResponse(404, `User not found.`);
+        response = new ApiResponse(httpStatusCode.notFound, `User not found.`);
       }
     } catch (err) {
-      response = new ApiResponse(err.statusCode, err.message);
+      response = new ApiResponse(err.statusCode? err.statusCode : httpStatusCode.internalServerError, err.message);
     }
     return response;
   }
@@ -55,12 +56,12 @@ export class AuthController {
       console.log('Deleting user with emailId:', emailId);
       const result = await UserModel.findOneAndDelete({ email: emailId });
       if (result) {
-        response = new ApiResponse(200, `User with emailId ${emailId} deleted successfully.`, result);
+        response = new ApiResponse(httpStatusCode.success, `User with emailId ${emailId} deleted successfully.`, result);
       } else {
-        response = new ApiResponse(404, `User with emailId ${emailId} not found.`);
+        response = new ApiResponse(httpStatusCode.notFound, `User with emailId ${emailId} not found.`);
       }
     } catch (err) {
-      response = new ApiResponse(err.statusCode, err.message);
+      response = new ApiResponse(err.statusCode? err.statusCode : httpStatusCode.internalServerError, err.message);
     }
     return response;
   }
