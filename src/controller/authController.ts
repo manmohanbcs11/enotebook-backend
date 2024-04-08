@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 import { ApiResponse } from "../common/apiResponse";
 import { httpStatusCode } from "../common/httpStatusCodes";
 import { Util } from "../common/utils";
-import UserModel from "../models/UserModel";
+import UserModel, { User } from "../models/UserModel";
+import { UserRole } from '../common/userRole';
 
 export class AuthController extends Util {
   constructor() {
@@ -19,18 +20,20 @@ export class AuthController extends Util {
   public async signup(req: any) {
     let response: ApiResponse;
     try {
-      let user = await UserModel.findOne({ email: req.body.email });
+      let user: User = await UserModel.findOne({ email: req.body.email });
       if (user) {
         return new ApiResponse(httpStatusCode.badRequest, `User with emailId ${req.body.email} already exists.`);
       }
 
       Util.validateBody(req.body);
+      const userRole = req.body.role ? UserRole[req.body.role.toUpperCase()] : UserRole.USER;
       const securePassword: string = await this.generatePasswordHash(req.body.password);
 
       user = await UserModel.create({
         name: req.body.name,
         email: req.body.email,
-        password: securePassword
+        password: securePassword,
+        role: userRole
       });
       const data = {
         user: {
@@ -54,7 +57,8 @@ export class AuthController extends Util {
   public async login(req: any) {
     let response: ApiResponse;
     try {
-      const user = await UserModel.findOne({ email: req.body.email });
+      Util.validateBody(req.body);
+      const user: User = await UserModel.findOne({ email: req.body.email });
       if (!user) {
         return new ApiResponse(httpStatusCode.notFound, `Please try to login with correct credentials.`);
       }
@@ -64,12 +68,12 @@ export class AuthController extends Util {
       }
       const data = {
         user: {
-          id: user.id
+          id: user.id,
+          role: user.role
         }
       }
       const authToken = await jwt.sign(data, process.env.JWT_SECRET);
       response = new ApiResponse(httpStatusCode.success, 'User logged in successfully.', { authToken: authToken });
-      Util.validateBody(req.body);
     } catch (err) {
       response = new ApiResponse(err?.statusCode ? err.statusCode : httpStatusCode.internalServerError, err.message);
     }
@@ -79,9 +83,9 @@ export class AuthController extends Util {
   public async getuser(req: any) {
     let response: ApiResponse;
     try {
-      const userId = req.user.id;
+      const userId: string = req.user.id;
       console.log('Getting user details with id:', userId);
-      const result = await UserModel.findById(userId).exec();
+      const result: User = await UserModel.findById(userId).exec();
       if (result) {
         response = new ApiResponse(httpStatusCode.success, `User fetched successfully.`, result);
       } else {
@@ -96,9 +100,9 @@ export class AuthController extends Util {
   public async updateuser(req: any) {
     let response: ApiResponse;
     try {
-      const userId = req.user.id;
+      const userId: string = req.user.id;
       console.log('Updating user details with id:', userId);
-      const result = await UserModel.findByIdAndUpdate(userId, req.body, { new: true });
+      const result: User = await UserModel.findByIdAndUpdate(userId, req.body, { new: true });
       if (result) {
         response = new ApiResponse(httpStatusCode.success, `User updated successfully.`);
       } else {
@@ -113,13 +117,18 @@ export class AuthController extends Util {
   public async deleteuser(req: any) {
     let response: ApiResponse;
     try {
-      const emailId = req.params.emailid;
+      const emailId: string = req.params.emailid;
+      const role: UserRole = req.user.role;
+      if (role !== UserRole.ADMIN) {
+        return new ApiResponse(httpStatusCode.forbidden, `Only admin can delete users.`);
+      }
+
       console.log('Deleting user with emailId:', emailId);
-      const result = await UserModel.findOneAndDelete({ email: emailId });
+      const result: User = await UserModel.findOneAndDelete({ email: emailId });
       if (result) {
-        response = new ApiResponse(httpStatusCode.success, `User with emailId ${emailId} deleted successfully.`, result);
+        response = new ApiResponse(httpStatusCode.success, `User deleted successfully.`, result);
       } else {
-        response = new ApiResponse(httpStatusCode.notFound, `User with emailId ${emailId} not found.`);
+        response = new ApiResponse(httpStatusCode.notFound, `User not found.`);
       }
     } catch (err) {
       response = new ApiResponse(err.statusCode ? err.statusCode : httpStatusCode.internalServerError, err.message);

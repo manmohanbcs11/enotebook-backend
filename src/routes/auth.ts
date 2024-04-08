@@ -17,7 +17,7 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 // get user information by emailId
-router.get('/getuser/:emailid', authorizer, async (req: Request, res: Response) => {
+router.get('/getuser', authorizer, async (req: Request, res: Response) => {
   await processRequest(authController.getuser, req, res);
 });
 
@@ -27,7 +27,7 @@ router.put('/updateuser', authorizer, async (req: Request, res: Response) => {
 });
 
 // delete user by emailId
-router.delete('/deleteuser/:emailid', async (req: Request, res: Response) => {
+router.delete('/deleteuser/:emailid', authorizer, async (req: Request, res: Response) => {
   await processRequest(authController.deleteuser, req, res);
 });
 

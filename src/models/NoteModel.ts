@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { User } from './UserModel';
 
 export interface Note extends Document {
+  user: User;
   title: string;
   description: string;
   tag: string;
@@ -8,6 +10,11 @@ export interface Note extends Document {
 }
 
 const noteSchema: Schema<Note> = new Schema({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   title: {
     type: String,
     required: true
