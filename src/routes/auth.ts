@@ -21,7 +21,7 @@ router.get('/getuser', authorizer, async (req: Request, res: Response) => {
   await processRequest(authController.getuser, req, res);
 });
 
-// update user information - not working
+// update user information
 router.put('/updateuser', authorizer, async (req: Request, res: Response) => {
   await processRequest(authController.updateuser, req, res);
 });
