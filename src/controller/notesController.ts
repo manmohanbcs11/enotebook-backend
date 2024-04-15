@@ -18,8 +18,8 @@ export class NotesController extends Util {
         return new ApiResponse(httpStatusCode.unauthorized, `User is Invalid.`);
       }
 
-      console.log('Fetching all notes...');
-      const notes: Note[] = await NoteModel.find();
+      console.log('Fetching all notes of user with id:', userId);
+      const notes: Note[] = await NoteModel.find({ user: userId }).exec();
       response = new ApiResponse(httpStatusCode.success, 'Notes fetched successfully.', notes);
     } catch (err) {
       response = new ApiResponse(err?.statusCode ? err.statusCode : httpStatusCode.internalServerError, err.message);
