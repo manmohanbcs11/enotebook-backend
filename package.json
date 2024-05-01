@@ -4,6 +4,7 @@
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "main": "dist/app.js",
   "scripts": {
+    "build": "npm install && tsc",
     "start": "tsc && node dist/app.js",
     "start-dev": "tsc && nodemon app.ts",
     "test": "mocha",

@@ -15,5 +15,5 @@ app.use('/api/auth/', authRouter);
 app.use('/api/notes/', notesRouter);
 
 app.listen(port, () => {
-  console.log(`eNotebook backend is listening at http://localhost:${port}`);
+  console.log(`eNotebook backend serevr is running...`);
 });
